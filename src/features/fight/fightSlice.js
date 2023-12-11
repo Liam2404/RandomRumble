@@ -1,10 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { current } from '@reduxjs/toolkit';
+import ichigo from '../../assets/sprite/stance/ichigo.gif';
 
 const initialState = {
   players: [
     {
-      name: 'John',
-      pv: 10,
+      name: 'Kurosaki Ichigo',
+      sprite : ichigo,
+      pv: 100,
       pvMax: 100,
       status: 'alive',
       mana: 100,
@@ -14,13 +17,13 @@ const initialState = {
         { name: 'Attaque', type: 'damage', damage: 5, manaCost: 0 },
         { name: 'Soin', type: 'heal', healAmount: 20, manaCost: 20 },
         { name: 'Mana Drain', type: 'manaDrain', damage: 10, manaGain: 10, manaCost: 0 },
-        { name: 'Ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
+        { name: 'BANKAI TENSA ZANGETSU', type: 'ultimate', damage: 20, manaCost: 30 },
       ],
     },
     
     {
-      name: "Jack",
-      pv: 10,
+      name: "hero2",
+      pv: 100,
       pvMax: 100,
       status: 'alive',
       mana: 100,
@@ -30,12 +33,12 @@ const initialState = {
         { name: 'Attaque', type: 'damage', damage: 5, manaCost: 0 },
         { name: 'Soin', type: 'heal', healAmount: 20, manaCost: 20 },
         { name: 'Mana Drain', type: 'manaDrain', damage: 10, manaGain: 10, manaCost: 0 },
-        { name: 'Ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
+        { name: 'ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
       ],
     },
     {
-      name: "Jessy",
-      pv: 10,
+      name: "hero3",
+      pv: 100,
       pvMax: 100,
       status: 'alive',
       mana: 100,
@@ -45,12 +48,12 @@ const initialState = {
         { name: 'Attaque', type: 'damage', damage: 5, manaCost: 0 },
         { name: 'Soin', type: 'heal', healAmount: 20, manaCost: 20 },
         { name: 'Mana Drain', type: 'manaDrain', damage: 10, manaGain: 10, manaCost: 0 },
-        { name: 'Ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
+        { name: 'ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
       ],
     },
     {
-      name: "Jenny",
-      pv: 10,
+      name: "hero4",
+      pv: 100,
       pvMax: 100,
       status: 'alive',
       mana: 100,
@@ -60,12 +63,12 @@ const initialState = {
         { name: 'Attaque', type: 'damage', damage: 5, manaCost: 0 },
         { name: 'Soin', type: 'heal', healAmount: 20, manaCost: 20 },
         { name: 'Mana Drain', type: 'manaDrain', damage: 10, manaGain: 10, manaCost: 0 },
-        { name: 'Ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
+        { name: 'ultimate', type: 'ultimate', damage: 20, manaCost: 30 },
       ],
     }
   ],
   monster: {
-    name: 'Monster',
+    name: 'monster',
     pv: '800',
     pvMax: '800',
     status: 'alive',
@@ -81,75 +84,83 @@ export const fightSlice = createSlice({
   name: 'fight',
   initialState,
   reducers: {
+
     hitMonster: (state, action) => {
       const attackingPlayerId = action.payload.attackingPlayerId;
-      const attackingPlayer = state.players.find(player => player.id === attackingPlayerId);
-    
+      const attackingPlayer = state.players.find((player) => player.id === attackingPlayerId);
+
       if (attackingPlayer && attackingPlayer.mana >= attackingPlayer.abilities[0].manaCost) {
         const hit = attackingPlayer.abilities[0].damage;
         state.monster.pv -= hit;
-    
         attackingPlayer.mana -= attackingPlayer.abilities[0].manaCost;
-    
+
         if (state.monster.pv < 0) {
           state.monster.pv = 0;
         }
-    
+
         state.lastAttackingPlayer = attackingPlayer;
       } else {
-        console.log("Pas assez de mana pour attaquer.");
+        console.log("Pas assez de mana pour attaquer ou joueur non trouvé.");
       }
     },
     HealAbility: (state, action) => {
       const { playerId } = action.payload;
       const player = state.players.find((p) => p.id === playerId);
 
-      const canUseAbility = player && player.mana >= player.abilities[1].manaCost;
-
-      canUseAbility
-        ? ((player.pv += player.abilities[1].healAmount),
-          (player.mana -= player.abilities[1].manaCost),
-          (player.pv = Math.min(player.pv, player.pvMax)))
-        : console.log("Pas assez de mana pour utiliser la capacité de soin.");
+      if (player && player.mana >= player.abilities[1].manaCost) {
+        player.pv += player.abilities[1].healAmount;
+        player.mana -= player.abilities[1].manaCost;
+        player.pv = Math.min(player.pv, player.pvMax);
+      } else {
+        console.log("Pas assez de mana pour utiliser la capacité de soin ou joueur non trouvé.");
+      }
     },
 
     ManaDrainAbility: (state, action) => {
       const { playerId } = action.payload;
       const player = state.players.find((p) => p.id === playerId);
-
-      const canUseAbility = player && player.mana >= player.abilities[2].manaCost;
-
-      canUseAbility
-        ? ((state.monster.pv -= player.abilities[2].damage),
-          (player.mana += player.abilities[2].manaGain),
-          (player.mana -= player.abilities[2].manaCost),
-          (state.monster.pv = Math.max(state.monster.pv, 0)))
-        : console.log("Pas assez de mana pour utiliser la capacité de drain de mana.");
+    
+      if (player && player.mana >= player.abilities[2].manaCost) {
+        player.mana += 20;
+    
+        player.pv -= 20;
+    
+        player.mana -= player.abilities[2].manaCost;
+    
+        player.pv = Math.max(player.pv, 0);
+      } else {
+        console.log("Pas assez de mana pour utiliser la capacité de drain de mana ou joueur non trouvé.");
+      }
     },
+    
 
     UltimateAbility: (state, action) => {
       const { playerId } = action.payload;
       const player = state.players.find((p) => p.id === playerId);
-
-      const canUseAbility = player && player.mana >= player.abilities[3].manaCost;
-
-      canUseAbility
-        ? ((state.monster.pv -= player.abilities[3].damage),
-          (player.mana -= player.abilities[3].manaCost),
-          (state.monster.pv = Math.max(state.monster.pv, 0)))
-        : console.log("Pas assez de mana pour utiliser la capacité ultime.");
+    
+      if (player && player.mana >= player.abilities[3].manaCost) {
+        console.log(`Avant - Mana du joueur (${player.name}): ${player.mana}`);
+        
+        state.monster.pv -= player.abilities[3].damage;
+        player.mana -= player.abilities[3].manaCost;
+        
+        console.log(`Après - Mana du joueur (${player.name}): ${player.mana}`);
+        
+        state.monster.pv = Math.max(state.monster.pv, 0);
+      } else {
+        console.log("Pas assez de mana pour utiliser la capacité ultime ou joueur non trouvé.");
+      }
     },
-
+    
 
     hitBack: (state, action) => {
       const hitBackPlayerId = action.payload.id;
       const hitBackPlayer = state.players.find(player => player.id === hitBackPlayerId);
     
-      if (hitBackPlayer) {
+      if (hitBackPlayer && hitBackPlayer.status === 'alive') {
         const alivePlayers = state.players.filter(player => player.status === 'alive' && player.id !== hitBackPlayerId);
     
         if (alivePlayers.length > 0) {
-
           const randomIndex = Math.floor(Math.random() * alivePlayers.length);
           const targetPlayer = alivePlayers[randomIndex];
     
@@ -161,6 +172,25 @@ export const fightSlice = createSlice({
         }
       }
     },
+
+    MonsterSpecials: (state) => {
+      const monster = state.monster;
+
+      if (monster.status === 'alive' && monster.specialAttack) {
+        const randomPlayerIndex = Math.floor(Math.random() * state.players.length);
+        const targetPlayer = state.players[randomPlayerIndex];
+
+        const specialAttackDamage = monster.specialAttack[0].damage;
+        targetPlayer.pv -= specialAttackDamage;
+
+        if (targetPlayer.pv < 0) {
+          targetPlayer.pv = 0;
+        }
+
+        console.log(`Monster used special attack on ${targetPlayer.name}! Damage: ${specialAttackDamage}`);
+      }
+    },
+    
     updatePlayerStatus: (state, action) => {
       const player = action.payload.player;
       const status = action.payload.status;
@@ -171,6 +201,7 @@ export const fightSlice = createSlice({
 
       state.players = updatedPlayers;
     },
+
     updateMonsterStatus: (state, action) => {
       const monster = action.payload.monster;
       const status = action.payload.status;
@@ -178,6 +209,7 @@ export const fightSlice = createSlice({
       const updatedMonster = { ...monster, status: status };
       state.monster = updatedMonster;
     },
+
     checkDefeat: (state) => {
       const allPlayersDead = state.players.every(player => player.status === 'dead');
 
@@ -212,19 +244,20 @@ export const fightSlice = createSlice({
       }
     },
 
-reduceMana: (state, action) => {
-  const { manaCost, playerId } = action.payload;
-  const player = state.players.find((p) => p.id === playerId);
+    playerPlayed: (state, action) => {
+      const playerId = action.payload.playerId;
 
-  if (player) {
-    player.mana -= manaCost;
+      if (!state.playersWhoPlayed.includes(playerId)) {
+        state.playersWhoPlayed.push(playerId);
+        console.log('Updated playersWhoPlayed:', state.playersWhoPlayed);
+        console.log(current(state));
+      }
+    },
 
-    if (player.mana < 0) {
-      player.mana = 0;
-    }
-  }
-},
-
+    resetPlayersWhoPlayed: (state) => {
+      state.playersWhoPlayed = [];
+      console.log('PlayersWhoPlayed has been reset.');
+    },
 
   },
 });
@@ -246,4 +279,9 @@ export const {
   HealAbility,
   ManaDrainAbility,
   UltimateAbility,
+  playerPlayed,
+  MonsterSpecials,
+  resetPlayersWhoPlayed
 } = fightSlice.actions;
+
+

@@ -5,13 +5,14 @@ import {
   updatePlayerStatus, updateMonsterStatus,
   checkDefeat, checkVictory,
   nextTurn, updateLastAttackingPlayer,
-  healPlayer, reduceMana,
   HealAbility, ManaDrainAbility, UltimateAbility,
+  playerPlayed,MonsterSpecials,resetPlayersWhoPlayed
 } from '../features/fight/fightSlice';
 
 const ButtonCapacity = ({ player, ability }) => {
   const dispatch = useDispatch();
   const monster = useSelector((state) => state.fight.monster);
+  const whoPlayed = useSelector((state) => state.fight.playersWhoPlayed)
   const currentTurnPlayerId = useSelector((state) => state.fight.currentTurnPlayerId);
 
   const combat = () => {
@@ -45,7 +46,6 @@ const ButtonCapacity = ({ player, ability }) => {
         break;
     }
 
-    dispatch(reduceMana({ manaCost: ability.manaCost, playerId: attackingPlayerId }));
     dispatch(hitBack({ id: player.id }));
     dispatch(updateLastAttackingPlayer({ playerId: attackingPlayerId }));
 
@@ -66,8 +66,16 @@ const ButtonCapacity = ({ player, ability }) => {
       dispatch(checkVictory());
     }
 
+    dispatch(playerPlayed({ playerId: attackingPlayerId }));
     dispatch(nextTurn());
     console.log('Tour suivant');
+
+    if (whoPlayed.length === 4) {
+      
+      dispatch(MonsterSpecials());
+      dispatch(resetPlayersWhoPlayed());
+    }
+
   };
 
   return (

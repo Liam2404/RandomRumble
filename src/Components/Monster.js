@@ -1,6 +1,7 @@
 import React from 'react';
 import ProgressBar from './ProgressBar';
 import { useSelector } from 'react-redux'; 
+import aizen from '../assets/sprite/stance/aizen.gif'
 
 
 const Monster = () => {
@@ -16,7 +17,10 @@ const Monster = () => {
                 <div className="row">
                   <div className="col-sm-2 offset-sm-3">
                     <span className="badge badge-danger ml-2 " id="degatSpanMonster"></span>
-                    <img className="img-fluid" src="http://res.publicdomainfiles.com/pdf_view/67/13925387417373.png" alt='monster' />
+                    <img className="img-fluid" src={aizen} alt='monster' />
+                  </div>
+                  <div>
+                    {monster.name}
                   </div>
                   <div id="comboOnMonster" className="col-sm-6">
                     
