@@ -19,12 +19,12 @@
 }
 
 .player-image {
-  width: 100px; /* Adjust the width as needed */
+  width: 300px; /* Adjust the width as needed */
   height: auto;
 }
 
 .card {
-  width: 300px; 
+  width: 400px; 
   margin: 0.25rem; 
 }
 
@@ -42,9 +42,11 @@
 }
 
 .ButtonCapacity {
-  display: inline-block;
-  width: 20%; 
-  margin: 0.5%;
+  justify-content: space-around;
+  width: 100%;
+  height: fit-content;
+  margin-top: 10px; 
+  margin-bottom: 10px;
 }
 
 
