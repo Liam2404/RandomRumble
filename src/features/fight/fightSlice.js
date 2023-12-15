@@ -37,7 +37,7 @@ const initialState = {
         { name: 'Byakurai', type: 'damage', damage: 50, manaCost: 0 },
         { name: 'Soin', type: 'heal', healAmount: 20, manaCost: 20 },
         { name: 'Mana Drain', type: 'manaDrain', damage: 10, manaGain: 10, manaCost: 0 },
-        { name: 'Bankai Hakka no Togame', type: 'ultimate', damage: 20, manaCost: 30 },
+        { name: 'Bankai Hakka no Togame', type: 'ultimate', damage: 350, manaCost: 100 },
       ],
     },
     {
@@ -53,7 +53,7 @@ const initialState = {
         { name: 'Senka ', type: 'damage', damage: 100, manaCost: 0 },
         { name: 'Soin', type: 'heal', healAmount: 20, manaCost: 20 },
         { name: 'Mana Drain', type: 'manaDrain', damage: 10, manaGain: 10, manaCost: 0 },
-        { name: 'Bankai Senbonzakura Kageyoshi ', type: 'ultimate', damage: 20, manaCost: 30 },
+        { name: 'Bankai Senbonzakura Kageyoshi ', type: 'ultimate', damage: 400, manaCost: 80 },
       ],
     },
     {
@@ -72,7 +72,7 @@ const initialState = {
     }
   ],
   monster: {
-    name: 'monster',
+    name: 'Sosuke Aizen',
     pv: '9000',
     pvMax: '9000',
     status: 'alive',
@@ -82,6 +82,7 @@ const initialState = {
   DeadPlayers: [],
   lastAttackingPlayer: null,
   currentTurnPlayerId: 1,
+  currentTurn: 1,
 };
 
 export const fightSlice = createSlice({
@@ -89,24 +90,41 @@ export const fightSlice = createSlice({
   initialState,
   reducers: {
 
+    nextTurn: (state) => {
+      const alivePlayers = state.players.filter(player => player.status === 'alive');
+    
+      if (alivePlayers.length > 0) {
+        const currentIndex = alivePlayers.findIndex(player => player.id === state.currentTurnPlayerId);
+        const nextIndex = (currentIndex + 1) % alivePlayers.length;
+        state.currentTurnPlayerId = alivePlayers[nextIndex].id;
+    
+        state.currentTurn += 1;
+      }
+    },
+    
     hitMonster: (state, action) => {
       const attackingPlayerId = action.payload.attackingPlayerId;
       const attackingPlayer = state.players.find((player) => player.id === attackingPlayerId);
-
-      if (attackingPlayer && attackingPlayer.mana >= attackingPlayer.abilities[0].manaCost) {
-        const hit = attackingPlayer.abilities[0].damage;
-        state.monster.pv -= hit;
-        attackingPlayer.mana -= attackingPlayer.abilities[0].manaCost;
-
-        if (state.monster.pv < 0) {
-          state.monster.pv = 0;
+    
+      if (attackingPlayer) {
+        if (attackingPlayer.mana >= attackingPlayer.abilities[0].manaCost) {
+          const hit = attackingPlayer.abilities[0].damage;
+          state.monster.pv -= hit;
+          attackingPlayer.mana -= attackingPlayer.abilities[0].manaCost;
+    
+          if (state.monster.pv < 0) {
+            state.monster.pv = 0;
+          }
+    
+          state.lastAttackingPlayer = attackingPlayer;
+        } else {
+          alert("Pas assez de mana pour attaquer.");
         }
-
-        state.lastAttackingPlayer = attackingPlayer;
       } else {
-        console.log("Pas assez de mana pour attaquer ou joueur non trouvé.");
+        alert("Joueur non trouvé.");
       }
     },
+    
     HealAbility: (state, action) => {
       const { playerId } = action.payload;
       const player = state.players.find((p) => p.id === playerId);
@@ -144,17 +162,24 @@ export const fightSlice = createSlice({
     
       if (player && player.mana >= player.abilities[3].manaCost) {
         console.log(`Avant - Mana du joueur (${player.name}): ${player.mana}`);
-        
+    
+        if (player.name === "Rukia Kuchiki") {
+          const selfDamage = 30;
+          player.pv -= selfDamage;
+        }
+    
         state.monster.pv -= player.abilities[3].damage;
         player.mana -= player.abilities[3].manaCost;
-        
+    
         console.log(`Après - Mana du joueur (${player.name}): ${player.mana}`);
-        
+    
         state.monster.pv = Math.max(state.monster.pv, 0);
+        player.pv = Math.max(player.pv, 0); // Assurez-vous que les points de vie ne descendent pas en dessous de zéro
       } else {
         console.log("Pas assez de mana pour utiliser la capacité ultime ou joueur non trouvé.");
       }
     },
+    
     
 
     hitBack: (state, action) => {
@@ -222,12 +247,13 @@ export const fightSlice = createSlice({
         state.defeatMessage = "Vous avez perdu !";
       }
     },
+
     checkVictory: (state) => {
       const monsterDead = state.monster.status === 'dead';
 
       if (monsterDead) {
         state.victoryMessage = "Vous avez gagné !";
-        console.log('Vous avez gagné !');
+        alert('Vous avez gagné !');
       }
     },
     updateLastAttackingPlayer: (state, action) => {
@@ -250,11 +276,21 @@ export const fightSlice = createSlice({
 
     playerPlayed: (state, action) => {
       const playerId = action.payload.playerId;
-
+    
       if (!state.playersWhoPlayed.includes(playerId)) {
         state.playersWhoPlayed.push(playerId);
         console.log('Updated playersWhoPlayed:', state.playersWhoPlayed);
         console.log(current(state));
+    
+        // Vérifie si tous les joueurs ont joué
+        const allPlayersPlayed = state.players.every(player => state.playersWhoPlayed.includes(player.id));
+    
+        if (allPlayersPlayed) {
+          // Si tous les joueurs ont joué, passe au tour suivant
+          console.log('Tous les joueurs ont joué. Passage au tour suivant.');
+          state.playersWhoPlayed = []; // Réinitialise la liste des joueurs qui ont joué
+          nextTurn(state);
+        }
       }
     },
 
